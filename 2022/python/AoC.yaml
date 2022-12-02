@@ -1,0 +1,17 @@
+name: AoC
+channels:
+    - defaults
+    - conda-forge
+dependencies:
+    - python=3.11
+    - pandas
+    - numpy
+    - rich
+    - ipywidgets
+    - matplotlib
+    - seaborn
+    - python-dotenv
+    - requests 
+    - pip
+    - pip:
+      - requirements.txt

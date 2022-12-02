@@ -2,6 +2,7 @@ test_input = """A Y
 B X
 C Z"""
 
+from support import get_input
 scores = {"X": 1, "Y": 2, "Z": 3}
 scores_p2 =  {"X": 0, "Y": 3, "Z": 6}
 
@@ -15,9 +16,7 @@ def cheating(input: str) -> int:
 def cheating_p2(input: str) -> int:
     return sum(scores_p2[Y]+scores[outcomes_p2[O][scores_p2[Y]]] for O, Y in map(str.split, input.split("\n")))
 
-print(cheating(test_input))
-with open("day02.txt") as fh:
-    print(cheating(fh.read().strip()))
+print(cheating(get_input("2")))
     
 
 # Part 2 
