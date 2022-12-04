@@ -20,7 +20,7 @@ fn main() {
         .map(|x| {
             x.split("\n")
                 .into_iter()
-                .filter_map(|s| s.parse::<u32>().ok())
+                .map(|s| s.parse::<u32>().unwrap())
                 .sum::<u32>()
         })
         .max()
@@ -33,7 +33,7 @@ let mut x = input
     .map(|x| {
         x.split("\n")
             .into_iter()
-            .filter_map(|s| s.parse::<u32>().ok())
+            .map(|s| s.parse::<u32>().unwrap())
             .sum::<u32>()
     })
     .collect::<Vec<u32>>();
