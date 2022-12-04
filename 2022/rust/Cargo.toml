@@ -1,0 +1,17 @@
+[package]
+name = "AdventOfCode"
+version = "1.0.0"
+edition = "2021"
+authors = ["Rory Munro <rory.munro@nottingham.ac.uk>"]
+description = "Rust section of my advent of code attempts."
+repository = "https://github.com/adoni5/AdventOfCode1"
+license = "MIT"
+keywords = ["AdventOfCode", "Competitive coding", "Fun"]
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[workspace]
+
+members = [
+    "day01",
+]
