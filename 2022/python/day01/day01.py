@@ -13,13 +13,16 @@ test_input = """1000
 
 10000"""
 
+
 def fattest_elf(input: str) -> int:
     elves = input.split("\n\n")
     return max(sum(map(int, elf.strip().split("\n"))) for elf in elves)
 
+
 def top_3_fattys(input: str) -> int:
     elves = input.strip().split("\n\n")
     return sum(sorted((sum(map(int, elf.strip().split("\n"))) for elf in elves))[-3:])
+
 
 print(fattest_elf(test_input))
 print(top_3_fattys(test_input))

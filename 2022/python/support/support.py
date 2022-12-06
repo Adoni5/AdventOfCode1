@@ -27,7 +27,7 @@ def get_input(day: str, year: str = "2022", split: str=None) -> list[str] | str:
     """
 
     # url  = request.Request(, headers={"session": os.getenv("SESSION")}, method="GET")
-    res = requests.get(f'https://adventofcode.com/{year}/day/{day}/input', headers={"Cookie": f"session={os.getenv('SESSION')}"})
+    res = requests.get(f"https://adventofcode.com/{year}/day/{day}/input", headers={"Cookie": f"session={os.getenv('SESSION')}", "User-Agent": "Rory Munro, https://github.com/Adoni5/AdventOfCode1 by rory.munro@nottingham.ac.uk (Hi Eric)"})
     ret = res.text.strip() if split is None else res.text.strip().split(split)
     return ret
 
