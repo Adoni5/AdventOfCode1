@@ -11,7 +11,7 @@ from dotenv import load_dotenv
 load_dotenv()
 
 
-def get_input(day: str, year: str = "2022", split: str=None) -> list[str] | str:
+def get_input(day: str, year: str = "2022", split: str = None) -> list[str] | str:
     """Retreive puzzle input for the given year/day.
 
     Parameters
@@ -20,29 +20,32 @@ def get_input(day: str, year: str = "2022", split: str=None) -> list[str] | str:
         The year for the puzzle in 4 digits. Ex. 2022
     day: str
         The day in smallest digits, i.e 1-31
-    
+
     Returns
     ------
     Stripped puzzle input
     """
 
     # url  = request.Request(, headers={"session": os.getenv("SESSION")}, method="GET")
-    res = requests.get(f"https://adventofcode.com/{year}/day/{day}/input", headers={"Cookie": f"session={os.getenv('SESSION')}", "User-Agent": "Rory Munro, https://github.com/Adoni5/AdventOfCode1 by rory.munro@nottingham.ac.uk (Hi Eric)"})
+    res = requests.get(
+        f"https://adventofcode.com/{year}/day/{day}/input",
+        headers={
+            "Cookie": f"session={os.getenv('SESSION')}",
+            "User-Agent": "Rory Munro, https://github.com/Adoni5/AdventOfCode1"
+            "by rory.munro@nottingham.ac.uk (Hi Eric)",
+        },
+    )
     ret = res.text.strip() if split is None else res.text.strip().split(split)
     return ret
 
 
 def group_by_lines(n: int, input: list[Any]) -> list[Any]:
-    """Group a list by n elements, returning each group as a list
-    """
+    """Group a list by n elements, returning each group as a list"""
     if n < 1:
-        raise ValueError('n must be at least one')
+        raise ValueError("n must be at least one")
     it = iter(input)
-    while (batch := list(islice(it, n))):
+    while batch := list(islice(it, n)):
         yield batch
-
-
-
 
 
 if __name__ == "__main__":
