@@ -18,54 +18,13 @@ R 17
 D 10
 L 25
 U 20"""
-#......
-#......
-#......
-#......
-#H.....
-# test_input = get_input("9")
 
-visited = set()
-#p1
-# head, tail = [0, 0], [0, 0]
-# print(visited)
-# for line in test_input.splitlines():
-#     direction, distance = line.split()
-#     if direction == "R":
-#         index, op = 0, add
-#     elif direction == "L":
-#         index, op = 0, sub
-#     elif direction == "U":
-#         index, op = 1, add
-#     else:
-#         index, op = 1, sub
-#     for i in range(int(distance)):
-#         head[index] = op(head[index], 1)
-#         tail_x, tail_y = tail
-#         head_x, head_y = head
-#         print(f"dx {head_x - tail_x}")
-#         print(f"dy {head_y - tail_y}")
-#         dx = head_x - tail_x
-#         dy = head_y - tail_y
+# A cool diferent solution using iterators
 
-#         if abs(dx) > 1 and not abs(dy):
-#             tail[0] += int(dx / abs(dx))
-#         if abs(dy) > 1 and not abs(dx):
-#             tail[1] += int(dy / abs(dy))
-#         if abs(dx) > 1 and abs(dy):
-#             tail[0] += int(dx / abs(dx))
-#             tail[1] += int(dy / abs(dy))
-#         if abs(dy) > 1 and abs(dx):
-#             tail[1] += int(dy / abs(dy))
-#             tail[0] += int(dx / abs(dx))
-#         visited.add(tuple(tail))
 
-#         print(head, tail)
-# print(len(visited))
-# print(visited)
-# p2
+visited_p1 = set()
+visited_p2 = set()
 knots = [[0, 0] for _ in range(10)]
-print(knots)
 for line in get_input("9", split="\n"):
     direction, distance = line.split()
     if direction == "R":
@@ -78,20 +37,15 @@ for line in get_input("9", split="\n"):
         index, op = 1, sub
     
     for i in range(int(distance)):
-        print(f"\nmovig {direction} 1")
         head = knots[0]
-
         head[index] = op(head[index], 1)
+        # loop all subsequent knots and move them 
         for i, knot in enumerate(knots[1:]):
             tail = knots[1:][i]
-            print(head, tail)
             tail_x, tail_y = tail
             head_x, head_y = head
-            print(f"dx {head_x - tail_x}")
-            print(f"dy {head_y - tail_y}")
             dx = head_x - tail_x
             dy = head_y - tail_y
-
             if abs(dx) > 1 and not abs(dy):
                 tail[0] += int(dx / abs(dx))
             if abs(dy) > 1 and not abs(dx):
@@ -102,14 +56,9 @@ for line in get_input("9", split="\n"):
             elif abs(dy) > 1 and abs(dx):
                 tail[1] += int(dy / abs(dy))
                 tail[0] += int(dx / abs(dx))
-
-            print(head, tail)
             head = knot
-        
-        visited.add(tuple(knots[-1]))
+        visited_p1.add(tuple(knots[1]))
+        visited_p2.add(tuple(knots[-1]))
 
-    
-print(knots)
-
-print(visited)
-print(len(visited))
+print(f"Part 1: {len(visited_p1)}")
+print(f"Part 2: {len(visited_p2)}")
