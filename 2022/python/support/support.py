@@ -9,6 +9,7 @@ from pprint import pprint, pformat
 from collections import defaultdict
 from pprint import pprint
 from dotenv import load_dotenv
+from heapq import heappop, heappush
 
 load_dotenv()
 
@@ -51,28 +52,39 @@ def group_by_lines(n: int, input: list[Any]) -> list[Any]:
 
 
 class Grid:
-    def __init__(self):
-        self.grid = None
+    def __init__(self, grid=None):
+        self.grid = grid
+        self._ncols = None
+        self._nrows = None
 
-    def read_grid(self, input: str | list[str]):
+    @staticmethod
+    def read_grid(s, func=lambda x: x):
         """Read a grid from the given input into a {(x, y): value}
 
         Parameters
         ----------
         input: str or list
         """
-        if isinstance(input, list):
-            self.grid = {
-                (x, y): v
-                for i, line in enumerate(input)
+        return Grid(
+            {
+                (x, y): func(v)
+                for i, line in enumerate(s.splitlines())
                 for x, y, v in zip(range(len(line)), [i] * len(line), line)
             }
-        elif isinstance(input, str):
-            self.grid = {
-                (x, y): v
-                 for i, line in enumerate(input.splitlines())
-                for x, y, v in zip(range(len(line)), [i] * len(line),  line)
-            }
+        )
+    
+
+    @property
+    def ncols(self):
+        if self._ncols is None:
+            self._ncols = max(c for _, c in self.grid.keys()) + 1
+        return self._ncols
+
+    @property
+    def rows(self):
+        if self._nrows is None:
+            self._nrows = max(c for c, _ in self.grid.keys()) + 1
+        return self._nrows
 
     def yield_neighbour_values(self, enforce_edges = False, fill_value = None, coords = False):
         """Iterate the grid and yield neighbours for each coordinate"""
@@ -114,6 +126,30 @@ class Grid:
 
     def __str__(self):
         return pformat(self.grid)
+
+    def walk(self, start: tuple[int, int], end: tuple[int, int], check_func=None, se_sub: tuple[str, str] = ("a", "z")) -> int:
+        """Walk with djikstras algorithm from start coord to end, returning distance as n steps
+        """
+        heap = [(0, start)]
+        seen = set()
+        sub_start_end = {self[start]: se_sub[0], self[end]: se_sub[1]}
+        while heap:
+            dist, cur_pos = heappop(heap)
+            cur_val = self[cur_pos] if self[cur_pos] != "S" else se_sub[0]
+            if cur_pos == end:
+                return dist
+
+            if cur_pos in seen:
+                continue
+            seen.add(cur_pos)
+
+            neighbours = self.get_neighbours(cur_pos, enforce_edges=True)
+            for neighbour_xy, n in neighbours[cur_pos].items():
+                if neighbour_xy in seen:
+                    continue
+                n = sub_start_end.get(n , n)
+                if check_func(n, cur_val):
+                    heappush(heap, (dist + 1, neighbour_xy))
 
 
 if __name__ == "__main__":
