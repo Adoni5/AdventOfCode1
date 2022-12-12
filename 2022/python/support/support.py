@@ -7,7 +7,7 @@ import os
 from itertools import islice, tee
 from pprint import pprint, pformat
 from collections import defaultdict
-
+from pprint import pprint
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -65,28 +65,49 @@ class Grid:
             self.grid = {
                 (x, y): v
                 for i, line in enumerate(input)
-                for x, y, v in zip([i] * len(line), range(len(line)), line)
+                for x, y, v in zip(range(len(line)), [i] * len(line), line)
             }
         elif isinstance(input, str):
-            for i, line in enumerate(input.splitlines()):
-                self.grid = {
-                    (i, y): v
-                    for x, y, v in zip([i] * len(line), range(len(line)), line)
-                }
+            self.grid = {
+                (x, y): v
+                 for i, line in enumerate(input.splitlines())
+                for x, y, v in zip(range(len(line)), [i] * len(line),  line)
+            }
 
-    def yield_neighbour_values(self, edges = False, fill_value = None, coords = False):
+    def yield_neighbour_values(self, enforce_edges = False, fill_value = None, coords = False):
         """Iterate the grid and yield neighbours for each coordinate"""
         neighbours = [(-1, 0), (0, 1), (1, 0), (0, -1)]
         if coords:
             for (x, y), v in iter(self.grid.items()):
-                yield {(x, y): {(x + dx, y + dy): self.grid.get((x + dx, y + dy), fill_value) for dx, dy in neighbours}}
+                _d = {(x, y): {(x + dx, y + dy): self.grid.get((x + dx, y + dy), fill_value) for dx, dy in neighbours}}
+                if enforce_edges:
+                    __d = {_k: {__k: __v for __k, __v in _v.items() if not any((__k[0] < 0, __k[1]< 0, not bool(__v)))} for _k, _v in _d.items()}
+                    yield __d
+                else: 
+                    yield _d
         else:
             for (x, y), v in iter(self.grid.items()):
                     yield {(x, y): [self.grid.get((x + dx, y + dy), fill_value) for dx, dy in neighbours]}
 
-    def get_neighbours(self, coords: tuple[Any, Any]):
+    def get_neighbours(self, coords: tuple[int, int], enforce_edges = False, return_coords = False, fill_value= None):
         """Get the neigbours for a provided value"""
-        return self.grid.get(coord, None)
+        neighbours = [(-1, 0), (0, 1), (1, 0), (0, -1)]
+        x, y = coords
+        _d = {(x, y): {(x + dx, y + dy): self.grid.get((x + dx, y + dy), fill_value) for dx, dy in neighbours}}
+        if enforce_edges:
+            _d = {_k: {__k: __v for __k, __v in _v.items() if not any((__k[0] < 0, __k[1]< 0, not bool(__v)))} for _k, _v in _d.items()}
+        return _d
+
+    def find_item(self, item: str):
+        """Return the coordinates of an item in the grid"""
+        for k, v in self.grid.items():
+            if v == item:
+                return(k)
+
+    def find_all_items(self, item_pattern: str) -> list[tuple[int, int]]:
+        """Find coordinates for all item patterns"""
+        ic = [k for k, v in self.grid.items() if v == item_pattern]
+        return ic
 
     def __getitem__(self, obj):
         return self.grid.get(obj, None)
