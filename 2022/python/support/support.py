@@ -7,11 +7,29 @@ import os
 from itertools import islice, tee
 from pprint import pprint, pformat
 from collections import defaultdict
-from pprint import pprint
 from dotenv import load_dotenv
 from heapq import heappop, heappush
 
+from collections import deque
+
 load_dotenv()
+
+
+
+def sliding_window(iterable, n, skip = False):
+    # sliding_window('ABCDEFG', 4) --> ABCD BCDE CDEF DEFG
+    """Yield a sliding window from an iterable. If skip - we skip a window to yield every other sliding window A
+    sliding_window('ABCDEFG', 4) --> ABCD CDEF
+    You have to call next at the end of the consuming for loop if skip is true """
+    it = iter(iterable)
+    window = deque(islice(it, n), maxlen=n)
+    if len(window) == n:
+        yield tuple(window)
+    for x in it:
+        window.append(x)
+        yield tuple(window)
+    if skip:
+        yield []
 
 
 def get_input(day: str, year: str = "2022", split: str = None) -> list[str] | str:
