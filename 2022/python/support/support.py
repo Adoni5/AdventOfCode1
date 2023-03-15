@@ -32,7 +32,7 @@ def sliding_window(iterable, n, skip = False):
         yield []
 
 
-def get_input(day: str, year: str = "2022", split: str = None) -> list[str] | str:
+def get_input(day: str | int, year: str | int = "2022", split: str = None, strip: bool = True) -> list[str] | str:
     """Retreive puzzle input for the given year/day.
 
     Parameters
@@ -56,7 +56,8 @@ def get_input(day: str, year: str = "2022", split: str = None) -> list[str] | st
             "by rory.munro@nottingham.ac.uk (Hi Eric)",
         },
     )
-    ret = res.text.strip() if split is None else res.text.strip().split(split)
+    ret = res.text.strip() if strip else res.text
+    ret = ret if split is None else res.split(split)
     return ret
 
 
@@ -76,18 +77,20 @@ class Grid:
         self._nrows = None
 
     @staticmethod
-    def read_grid(s, func=lambda x: x):
+    def read_grid(s, func=lambda x: x, skip=None):
         """Read a grid from the given input into a {(x, y): value}
 
         Parameters
         ----------
-        input: str or list
+        s: str or list
         """
+        s = s.splitlines() if isinstance(s, str) else s
         return Grid(
             {
                 (x, y): func(v)
-                for i, line in enumerate(s.splitlines())
+                for i, line in enumerate(s)
                 for x, y, v in zip(range(len(line)), [i] * len(line), line)
+                if v != skip
             }
         )
     
@@ -99,14 +102,34 @@ class Grid:
         return self._ncols
 
     @property
-    def rows(self):
+    def nrows(self):
         if self._nrows is None:
             self._nrows = max(c for c, _ in self.grid.keys()) + 1
         return self._nrows
 
-    def yield_neighbour_values(self, enforce_edges = False, fill_value = None, coords = False):
+    @property
+    def bounds(self):
+        """Return bounding box
+        (x_min, x_max, y_min, y)max)
+        """
+        return (0, self.nrows, 0, self.ncols)
+
+    def column_bounds(self, col_idx):
+        """Return the max and min column coordinate"""
+        maxi = max(c for _, c in self.grid.keys() if _ == col_idx)
+        mini = min(c for _, c in self.grid.keys() if _ == col_idx)
+        return mini, maxi
+
+    def row_bounds(self, row_idx):
+        maxi = max(c for c, _ in self.grid.keys() if _ == row_idx)
+        mini = min(c for c, _ in self.grid.keys() if _ == row_idx)
+        return mini, maxi
+
+    def yield_neighbour_values(self, enforce_edges = False, fill_value = None, coords = False, diagonal=False):
         """Iterate the grid and yield neighbours for each coordinate"""
         neighbours = [(-1, 0), (0, 1), (1, 0), (0, -1)]
+        if diagonal:
+            neighbours = [(-1, 1), (0, 1), (1, 1), (1, 0), (1, -1), (-1, 0), (-1, -1), (0, -1)]
         if coords:
             for (x, y), v in iter(self.grid.items()):
                 _d = {(x, y): {(x + dx, y + dy): self.grid.get((x + dx, y + dy), fill_value) for dx, dy in neighbours}}
@@ -119,9 +142,11 @@ class Grid:
             for (x, y), v in iter(self.grid.items()):
                     yield {(x, y): [self.grid.get((x + dx, y + dy), fill_value) for dx, dy in neighbours]}
 
-    def get_neighbours(self, coords: tuple[int, int], enforce_edges = False, return_coords = False, fill_value= None):
+    def get_neighbours(self, coords: tuple[int, int], enforce_edges = False, return_coords = False, fill_value= None, diagonal=False):
         """Get the neigbours for a provided value"""
         neighbours = [(-1, 0), (0, 1), (1, 0), (0, -1)]
+        if diagonal:
+            neighbours = [(-1, 1), (0, 1), (1, 1), (1, 0), (1, -1), (-1, 0), (-1, -1), (0, -1)]
         x, y = coords
         _d = {(x, y): {(x + dx, y + dy): self.grid.get((x + dx, y + dy), fill_value) for dx, dy in neighbours}}
         if enforce_edges:
@@ -139,8 +164,8 @@ class Grid:
         ic = [k for k, v in self.grid.items() if v == item_pattern]
         return ic
 
-    def __getitem__(self, obj):
-        return self.grid.get(obj, None)
+    def __getitem__(self, obj, fill=None):
+        return self.grid.get(obj, fill)
 
     def __str__(self):
         return pformat(self.grid)
@@ -168,6 +193,7 @@ class Grid:
                 n = sub_start_end.get(n , n)
                 if check_func(n, cur_val):
                     heappush(heap, (dist + 1, neighbour_xy))
+
 
 
 if __name__ == "__main__":
