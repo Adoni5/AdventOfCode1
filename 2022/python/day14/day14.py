@@ -1,112 +1,81 @@
+from math import inf
 import re
 from support import sliding_window, get_input
+from itertools import zip_longest
 from pprint import pprint
+import time
 test_input = """498,4 -> 498,6 -> 496,6
 503,4 -> 502,4 -> 502,9 -> 494,9"""
 
 pat = re.compile(r"(\d+)")
 
-def pgprint(pg):
-    """Print a nested list of lists as a grid"""
-    print("\n".join(["".join(list(map(str, p))) for p in pg]))
-
 
 rocks = set()
 sand = set()
+minx = inf
+maxx = -inf
+maxy = 0
 test_input = get_input("14")
 for line in test_input.splitlines():
     itery = sliding_window(pat.findall(line), 4, skip=True)
     for coords in itery:
         x1, y1, x2, y2 = map(int, coords)
+        minx = min((x1, x2, minx))
+        maxx = max((x1, x2, maxx))
+        maxy = max((y1, y2, maxy))
         for x in range(min(x1, x2), max(x1, x2) +1):
-            # print(f"x is {x-494}")
-            # listy[y1][x-494] = "#"
             rocks.add((x, y1))
         for y in range(min(y1, y2), max(y1, y2)+1):
-            # print(f"y is {y}")
-            # listy[y][x1-494] = "#"
             rocks.add((x1, y))
-
-
         next(itery)
-# listy = [["."] *  for _ in range(10)]
 
-# pgprint(listy)
-        
-sandy = True
-sand_start = 500, 0
-sand_count = 0
-lowest_rock = max(r[1] for r in iter(rocks))
-print(lowest_rock)
-infinte_floor = lowest_rock + 2
-# pprint(rocks)
-sand_char = "o"
-max_x, min_x = max(r[0] for r in iter(rocks)), min(r[0] for r in iter(rocks))
-for i in range(min_x - 5000, max_x + 5000):
-    rocks.add((i, infinte_floor))
+rocks.union(set(zip_longest(range(-5000, 5000), iter([maxy]), fillvalue=maxy)))
 
-
-while sandy:
-    sand_x, sand_y = sand_start
-    # print(f"start {sand_x}, {sand_y}")
-    # sand falls everybody drops
-    while True:
-        sand_down = (sand_x, sand_y+1)
-        # print(sand_down)
-        # STUPID
-        # if sand_down in rocks and sand_down not in sand:
-        #     print("hit rock")
-        #     sand.add((sand_x, sand_y))
-        #     listy[sand_y][sand_x-494] = sand_char
-
-        #     break
-        if sand_down in sand or sand_down in rocks:
-            # print("hit obstacle")
-            sand_down_left = (sand_x - 1 , sand_y + 1)
-            sand_down_right = (sand_x + 1, sand_y + 1)
-            if sand_down_left not in rocks and sand_down_left not in sand:
-                # print("moving left")
-                sand_x -= 1
-                if sand_y > infinte_floor:
-                    print("fell off")
-                    sandy = False
+def rocks_fall_everbody_duels(rocks, sand, minx, maxx):
+    count = 0
+    fall = True
+    while fall:
+        # print(count)
+        start = (500, 0)
+        drop = True
+        x, y = start
+        while 1:
+            # print(x, y)
+            if (x, y+1) in rocks or (x, y+1) in sand:
+                dl = (x-1, y+1)
+                if dl[0] < minx:
+                    fall = False
                     break
-                continue
-            elif sand_down_right not in rocks and sand_down_right not in sand:
-                # print("moving right")
 
-                sand_x += 1
-
-                if sand_y > infinte_floor:
-                    print("fell off")
-                    sandy = False
+                if not dl in sand and not dl in rocks:
+                    x, y = dl
+                    continue
+                dr = (x + 1, y + 1)
+                if dr[0] > maxx:
+                    fall = False
                     break
-                continue
-            # It's now resting on 3 sand
-            else:
-                # print("resting on sand")
-                # listy[sand_y][sand_x-494] = sand_char
+                if not dr in sand and not dr in rocks:
+                    x, y = dr
+                    continue
+                                # part 2 check
 
-                sand.add((sand_x, sand_y))
-                if (sand_x, sand_y) == (500,0):
-                    sand_count += 1
-                    sandy = False
+                sand.add((x, y))
+                if (x, y) == (500, 0):
+                    print("Got to 500, 0")
+                    fall = False
+                    break
                 break
-        
-            
-        sand_y += 1 
-        if sand_y > infinte_floor:
-            print("fell off")
-            sandy = False
-            break
-    if sandy:
-        sand_count += 1
-    # pgprint(listy)
-# print(sand)
-print(sand_count)
 
-# for x, y in iter(sand):
-#     listy[y][x-494] = sand_char
-# pgprint(listy)
+            y += 1
+        count += 1
+    return len(sand)
 
+# surely we can reuse the above
+# part 1
+print(rocks_fall_everbody_duels(rocks=rocks, sand=sand, minx=minx, maxx=maxx))
+# part 2
+dx, dx2 = - 5000, 5000
+minx, maxx = 500 + dx, 500 + dx2
+rocks = rocks.union(set(zip_longest(range(minx, maxx), iter([maxy+2]), fillvalue=maxy+2)))
 
+print(rocks_fall_everbody_duels(rocks=rocks, sand=sand, minx=minx, maxx=maxx))
