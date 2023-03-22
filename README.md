@@ -10,3 +10,9 @@
 | 2021      |  0 |          0 |
 
 
+```console
+git clone https://github.com/Adoni5/AdventOfCode1.git
+cd AdventOfCode1/2022/python
+mamba env create -f AoC.yaml
+conda activate AoC
+```

@@ -14,4 +14,4 @@ dependencies:
     - requests 
     - pip
     - pip:
-      - requirements.txt
+      - -r requirements.txt
