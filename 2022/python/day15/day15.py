@@ -120,6 +120,9 @@ part_1_ranges = range_on_row(2_000_000, coords)
 print(f"Part 1 {total_ranges(part_1_ranges)}")        
 
 ## Part 2
+# need to include positions where beacons are already, and we are off by one on our ranges :(
+# Somehow we still get the right answer in part 1 but we won't in part 2
+# Clamp the ranges between 0 and 4 million and then do the below check
 for y in range(0, 4_000_000):
     print(y)
     ranges = range_on_row(y, coords)
