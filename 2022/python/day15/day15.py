@@ -1,5 +1,6 @@
 import re
 from pprint import pprint
+from operator import itemgetter
 from support import get_input, sliding_window
 test_input = """Sensor at x=2, y=18: closest beacon is at x=-2, y=15
 Sensor at x=9, y=16: closest beacon is at x=10, y=16
@@ -52,14 +53,15 @@ Sensor at x=3597620, y=3100104: closest beacon is at x=4166706, y=3171774"""
 def manhattan_distance(point1, point2):
     return sum(abs(value1 - value2) for value1, value2 in zip(point1, point2))
 
-def total_ranges(ranges):
+def total_ranges(ranges, y, coords):
     """
         Take a list of ranges, and work out how many elements they contain
     """
     total = 0
+    beacon_xs = set(beacon_x(coords, y))
     for rangey in ranges:
-        total += rangey.stop - rangey.start
-    return total
+        total += rangey.stop + 1 - rangey.start
+    return total- len(beacon_xs)
 
 def coalesce(ranges):
     """
@@ -94,8 +96,12 @@ def parse_input(input):
         coords.append(tuple(map(int, pat.findall(l))))
     return coords
 
+def beacon_x(coords, y: int):
+    """Return the x coords of all beacons on a given y"""
+    getter = itemgetter(2)
+    return [getter(x) for x in filter(lambda x: x[3] == y, coords)]
 
-def range_on_row(y, coords):
+def range_on_row(y, coords, clamp_range=None):
     """
         At a given Y, calculate the range of positions a beacon cannot be at and return it
     """
@@ -109,23 +115,40 @@ def range_on_row(y, coords):
             continue
         start = sx - abs(man_dist-y_dist)
         end = sx + abs(man_dist-y_dist)
-        ranges.append(range(start, end))
+        ranger = range(start, end)
+        if clamp_range is not None:
+            ranger = range(max(clamp_range.start, ranger.start), min(clamp_range.stop, ranger.stop))
+            # We aren't in the range at all
+            if ranger.start > ranger.stop:
+                continue
+        ranges.append(ranger)
     ranges.sort(key=lambda x: (x.start, x.stop))
     ranges = coalesce(ranges)
+    # print(ranges)
     return ranges
+
+def tuning_key(ranges, y):
+    """Take a list of 2 ranges that are offset by 1,
+      get the number inbetween them and return the 'tuning key'"""
+    # sanity check
+    assert(len(ranges) == 2)
+    range1, range2 = ranges
+    assert(range2.start - range1.stop == 2)
+    print(f"Tuning key is {(4000000 * (range1.stop + 1)) + y}")
 
 coords = parse_input(real_input)
 
-part_1_ranges = range_on_row(2_000_000, coords)
-print(f"Part 1 {total_ranges(part_1_ranges)}")        
+target_y = 2_000_000
+part_1_ranges = range_on_row(target_y, coords)
+print(f"Part 1 {total_ranges(part_1_ranges, target_y, coords)}")        
 
-## Part 2
-# need to include positions where beacons are already, and we are off by one on our ranges :(
-# Somehow we still get the right answer in part 1 but we won't in part 2
+# Part 2
 # Clamp the ranges between 0 and 4 million and then do the below check
 for y in range(0, 4_000_000):
     print(y)
-    ranges = range_on_row(y, coords)
+    ranges = range_on_row(y, coords, range(0, 4_000_000))
     if len(ranges)> 1:
+        print(f"Y coordinate {y}")
         print(ranges)
+        tuning_key(ranges, y)
         break
