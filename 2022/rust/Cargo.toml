@@ -14,4 +14,9 @@ keywords = ["AdventOfCode", "Competitive coding", "Fun"]
 
 members = [
     "day01",
+    "day02",
+    "SantasLittleHelper"
 ]
+
+[dependencies]
+SantasLittleHelper = { path = "SantasLittleHelper"}
