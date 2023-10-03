@@ -12,15 +12,13 @@ test_input = """        ...#
         ......#.
 
 10R5L5R10L4R5L5"""
-# 10L5L7L3R1L10L"""
 
-# 10L5L5R10L4R5L5"""
-print(test_input.split("\n\n"))
 
 from math import inf
 from itertools import zip_longest
 from support import Grid, get_input
 import re
+from pprint import pprint, pformat
 
 # test_input = get_input(22, strip=False)
 grid, instructions = test_input.split("\n\n")
@@ -38,7 +36,9 @@ pat = re.compile(r"(\d+)")
 pat2 = re.compile(r"([RL])")
 
 
-for dist, turn in zip_longest(map(int,pat.findall(instructions)), pat2.findall(instructions), fillvalue="NA"):
+for dist, turn in zip_longest(
+    map(int, pat.findall(instructions)), pat2.findall(instructions), fillvalue="NA"
+):
     # print(dist, turn)
     dx, dy = lookup_direction[direction]
     for _ in range(dist):
@@ -47,7 +47,7 @@ for dist, turn in zip_longest(map(int,pat.findall(instructions)), pat2.findall(i
         # print(nx, ny, dx, dy)
         minx, maxx = g.row_bounds(ny) if dx != 0 else (0, inf)
         # print(minx, maxx)
-        miny, maxy = g.column_bounds(nx) if dy != 0 else (0 ,inf)
+        miny, maxy = g.column_bounds(nx) if dy != 0 else (0, inf)
         # print(miny, maxy)
         # print(f"old nx, ny {nx}, {ny}")
 
@@ -62,7 +62,6 @@ for dist, turn in zip_longest(map(int,pat.findall(instructions)), pat2.findall(i
 
         # print(f"new nx, ny {nx}, {ny}")
         if g.grid[(nx, ny)] != "#":
-
             x = nx
             y = ny
         pos = (x, y)
@@ -72,71 +71,168 @@ for dist, turn in zip_longest(map(int,pat.findall(instructions)), pat2.findall(i
     direction = (direction + (lookup[turn])) % 360
     # print(direction)
 
-for (x, y) in g.grid.keys():
+for x, y in g.grid.keys():
     x1, x2 = g.row_bounds(y)
     y1, y2 = g.column_bounds(x)
-    
-
-# print(sum(((pos[0] + 1) * 4, (pos[1] + 1) * 1000, final_dir[direction])))
-# test input 4 x 4
-# wrap = {}
-# def edge(face1, dir1, exit, face2, dir2, enter, rot):
-#   for k in range(4):
-#     p1 = (face1[0] + dir1[0] * k, face1[1] + dir1[1] * k)
-#     p2 = (face2[0] + dir2[0] * k, face2[1] + dir2[1] * k)
-#     wrap[(p1[0] + exit[0], p1[1] + exit[1])] = (p2, rot)
-#     wrap[(p2[0] + enter[0], p2[1] + enter[1])] = (p1, -rot)
-
-# # Front:
-# edge((0, 4), (1, 0), (0, -1), (4, 0), (-1, 0), (0, -1), 180) # Left
-# edge((0, 50), (0, 1), (-1, 0), (150, 0), (1, 0), (0, -1), 90) # Top
-
-# # Right:
-# edge((49, 100), (0, 1), (1, 0), (50, 99), (1, 0), (0, 1), 180) # Under
-# edge((0, 100), (0, 1), (-1, 0), (199, 0), (0, 1), (1, 0), 0) # Top
-# edge((0, 149), (1, 0), (0, 1), (149, 99), (-1, 0), (0, 1), 90) # Back
-
-# # Under:
-# edge((50, 50), (1, 0), (0, -1), (100, 0), (0, 1), (-1, 0), 270) # Left
-
-# # Back:
-# edge((149, 50), (0, 1), (1, 0), (150, 49), (1, 0), (0, 1), 90) # Top
-# print(wrap[(62, -1)])
-# print(wrap)
 
 
-# for dist, turn in zip_longest(map(int,pat.findall(instructions)), pat2.findall(instructions), fillvalue="NA"):
-#     dx, dy = lookup_direction[direction]
-#     for _ in range(dist):
-#         x, y = pos
-#         nx, ny = (x + dx, y + dy)
-#         # print(nx, ny, dx, dy)
-#         minx, maxx = g.row_bounds(ny) if dx != 0 else (0, inf)
-#         # print(minx, maxx)
-#         miny, maxy = g.column_bounds(nx) if dy != 0 else (0 ,inf)
-#         # print(miny, maxy)
-#         # print(f"old nx, ny {nx}, {ny}")
+# Part 2 - starting again
 
-#         if (nx,ny) in wrap:
-#             (nx,ny),new_direction = wrap[(nx,ny)]
-#             direction = (direction + new_direction)
-#         # if minx > nx and dx != 0:
-#         #     nx = maxx
-#         # elif nx > maxx and dx != 0:
-#         #     nx = minx
-#         # elif miny > ny and dy != 0:
-#         #     ny = maxy
-#         # elif maxy < ny and dy != 0:
-#         #     ny = miny
 
-#         # print(f"new nx, ny {nx}, {ny}")
-#         if g.grid[(nx, ny)] != "#":
+class FaceRow:
+    def __init__(self, row: list[str], col_start: int, row_start: int) -> None:
+        self.row = row
+        self.row_start = row_start
+        self.col_start = col_start
 
-#             x = nx
-#             y = ny
-#         pos = (x, y)
-#         # print(f"pos {pos}")
-#     # factor = -1 if 360 > direction >= 180 else 1
-#     # print(factor)
-#     direction = (direction + (lookup[turn])) % 360
-    # print(direction)
+    @property
+    def get_coords(self):
+        return (self.col_start, self.row_start)
+
+
+class Face:
+    def __init__(self, size: int) -> None:
+        self.face = []
+        self.size = 0
+        self.x = None
+        self.y = None
+
+    def __repr__(self) -> str:
+        return pformat(self.face)
+
+
+lines = [line for line in grid.splitlines()]
+face_start = re.compile(r"(\.|#{1})")
+
+
+def extract_faces(map_data, n=4) -> list[Face]:
+    # Determine the size of a face (n x n)
+    faces = [Face(n), Face(n), Face(n), Face(n), Face(n), Face(n)]
+    complete_faces = 0
+    for line_index, line in enumerate(map_data):
+        face_start_match = face_start.search(line)
+        col_offset = face_start_match.end()
+        line = line.strip()
+        faces_in_row = len(line) // n
+        for face_in_row in range(faces_in_row):
+            print(f"face in row {line_index}: {face_in_row}")
+            face_row = line[face_in_row * n : (face_in_row * n) + n]
+            print(face_row)
+            print(f"faces_index: {face_in_row + complete_faces}")
+            face = faces[face_in_row + complete_faces]
+            face.size = n
+            if face.x is None:
+                face.x = col_offset + face_in_row * n
+                face.y = line_index
+            faces[face_in_row + complete_faces].face.append(
+                FaceRow(
+                    list(face_row),
+                    col_start=face_in_row + complete_faces + col_offset,
+                    row_start=line_index + 1,
+                )
+            )
+        # Increment completed face counter to get right face index out
+        print(f" line index + 1 % 4) {(line_index+1) % n}")
+        if not ((line_index + 1) % n) and line_index:
+            print("increwmenting complete")
+            complete_faces += faces_in_row
+        print("\n")
+    return faces
+
+
+# Extract the front face (1)
+# Using the test_input data
+faces = extract_faces(lines)
+pprint(faces)
+
+
+def check_obstacle(position, face_row):
+    """Are we moving into an obstacle"""
+    if face_row.row[position[0]] == "#":
+        return True
+
+
+def move(position, direction, face, faces):
+    x, y = position
+    nx, ny = (0, 0)
+    if direction == 0:  # Moving right
+        nx, ny = (x + 1, y)
+    elif direction == 1:  # Moving down
+        nx, ny = (x, y + 1)
+    elif direction == 2:  # Moving left
+        nx, ny = (x - 1, y)
+    elif direction == 3:  # Moving up
+        nx, ny = (x, y - 1)
+    if check_obstacle(position, faces[face].face[ny]):
+        return position
+    return (nx, ny)
+
+
+def hitting_edge(position, direction, size) -> (bool, int):
+    """Fallen off the edge of the world, return if we are falling off and the edge we are falling off of"""
+    x, y = position
+    if y == size - 1 and direction == 1:  # Bottom edge
+        return True, 1
+    elif x == size - 1 and direction == 0:  # Right edge
+        return True, 2
+    elif y == 0 and direction == 3:  # Top edge
+        return True, 0
+    elif x == 0 and direction == 2:  # Left edge
+        return True, 3
+    return False, None
+
+
+layout = """
+    0
+1 2 3 4
+    5
+"""
+#  90 degree directions
+lookup_facing = {0: "R", 1: "D", 2: "L", 3: "U"}
+lookup_direction = {v: k for k, v in lookup_facing.items()}
+
+graph = {
+    1: {"U": (2, 180), "D": (4, 0), "L": (3, -90), "R": (6, 180)},
+    2: {"U": (1, 180), "D": (5, 180), "L": (6, 90), "R": (3, 0)},
+    3: {"U": (1, 90), "D": (5, -90), "L": (2, 0), "R": (4, 0)},
+    4: {"U": (1, 0), "D": (5, 0), "L": (3, 0), "R": (6, 90)},
+    5: {"U": (5, 0), "D": (2, 180), "L": (3, 90), "R": (6, 0)},
+    6: {"U": (4, -90), "D": (2, -90), "L": (5, 0), "R": (1, 180)},
+}
+
+
+def transition_to_adjacent_face(
+    position: tuple[int, int],
+    edge: int,
+    face: int,
+    size: int,
+    graph: dict[int, dict[str, tuple[int, int]]],
+) -> (int, tuple[int, int], int):
+    """Transition to the adjacent face returning the new face, position and direction"""
+    x, y = position
+    new_face = graph[face][lookup_facing[edge]][0]
+    return graph, (x, size - 1), 1
+
+
+# # face, column, row
+position = (0, faces[0].face[0].row.index("."))
+facing = 0
+face = 1
+pat = re.compile(r"(\d+)")
+pat2 = re.compile(r"([RL])")
+face_size = faces[0].size
+
+
+for dist, turn in zip_longest(
+    map(int, pat.findall(instructions)), pat2.findall(instructions), fillvalue="NA"
+):
+    steps = dist
+    for _ in range(steps):
+        position = move(position, direction, face, faces)
+        hit, edge = hitting_edge(position, direction, face_size)
+        if hit:
+            face, position, direction = transition_to_adjacent_face(
+                position, edge, face, face_size, graph
+            )
+face = faces[face - 1]
+print(position[0] + face.x, position[1] + face.y)
