@@ -1,7 +1,7 @@
 """Helper functions for AoC in python
 """
 
-from typing import Any
+from typing import Any, Sequence
 import requests
 import os
 from itertools import islice, tee
@@ -15,12 +15,11 @@ from collections import deque
 load_dotenv()
 
 
-
-def sliding_window(iterable, n, skip = False):
+def sliding_window(iterable, n, skip=False):
     # sliding_window('ABCDEFG', 4) --> ABCD BCDE CDEF DEFG
     """Yield a sliding window from an iterable. If skip - we skip a window to yield every other sliding window A
     sliding_window('ABCDEFG', 4) --> ABCD CDEF
-    You have to call next at the end of the consuming for loop if skip is true """
+    You have to call next at the end of the consuming for loop if skip is true"""
     it = iter(iterable)
     window = deque(islice(it, n), maxlen=n)
     if len(window) == n:
@@ -32,7 +31,9 @@ def sliding_window(iterable, n, skip = False):
         yield []
 
 
-def get_input(day: str | int, year: str | int = "2022", split: str = None, strip: bool = True) -> list[str] | str:
+def get_input(
+    day: str | int, year: str | int = "2022", split: str = None, strip: bool = True
+) -> list[str] | str:
     """Retreive puzzle input for the given year/day.
 
     Parameters
@@ -93,7 +94,6 @@ class Grid:
                 if v != skip
             }
         )
-    
 
     @property
     def ncols(self):
@@ -125,44 +125,118 @@ class Grid:
         mini = min(c for c, _ in self.grid.keys() if _ == row_idx)
         return mini, maxi
 
-    def yield_neighbour_values(self, enforce_edges = False, fill_value = None, coords = False, diagonal=False):
+    def yield_neighbour_values(
+        self, enforce_edges=False, fill_value=None, coords=False, diagonal=False
+    ):
         """Iterate the grid and yield neighbours for each coordinate"""
         neighbours = [(-1, 0), (0, 1), (1, 0), (0, -1)]
         if diagonal:
-            neighbours = [(-1, 1), (0, 1), (1, 1), (1, 0), (1, -1), (-1, 0), (-1, -1), (0, -1)]
+            neighbours = [
+                (-1, 1),
+                (0, 1),
+                (1, 1),
+                (1, 0),
+                (1, -1),
+                (-1, 0),
+                (-1, -1),
+                (0, -1),
+            ]
         if coords:
             for (x, y), v in iter(self.grid.items()):
-                _d = {(x, y): {(x + dx, y + dy): self.grid.get((x + dx, y + dy), fill_value) for dx, dy in neighbours}}
+                _d = {
+                    (x, y): {
+                        (x + dx, y + dy): self.grid.get((x + dx, y + dy), fill_value)
+                        for dx, dy in neighbours
+                    }
+                }
                 if enforce_edges:
-                    __d = {_k: {__k: __v for __k, __v in _v.items() if not any((__k[0] < 0, __k[1]< 0, not bool(__v)))} for _k, _v in _d.items()}
+                    __d = {
+                        _k: {
+                            __k: __v
+                            for __k, __v in _v.items()
+                            if not any((__k[0] < 0, __k[1] < 0, not bool(__v)))
+                        }
+                        for _k, _v in _d.items()
+                    }
                     yield __d
-                else: 
+                else:
                     yield _d
         else:
             for (x, y), v in iter(self.grid.items()):
-                    yield {(x, y): [self.grid.get((x + dx, y + dy), fill_value) for dx, dy in neighbours]}
+                yield {
+                    (x, y): [
+                        self.grid.get((x + dx, y + dy), fill_value)
+                        for dx, dy in neighbours
+                    ]
+                }
 
-    def get_neighbours(self, coords: tuple[int, int], enforce_edges = False, return_coords = False, fill_value= None, diagonal=False):
+    def get_neighbours(
+        self,
+        coords: tuple[int, int],
+        enforce_edges=False,
+        return_coords=False,
+        fill_value=None,
+        diagonal=False,
+    ):
         """Get the neigbours for a provided value"""
         neighbours = [(-1, 0), (0, 1), (1, 0), (0, -1)]
         if diagonal:
-            neighbours = [(-1, 1), (0, 1), (1, 1), (1, 0), (1, -1), (-1, 0), (-1, -1), (0, -1)]
+            neighbours = [
+                (-1, 1),
+                (0, 1),
+                (1, 1),
+                (1, 0),
+                (1, -1),
+                (-1, 0),
+                (-1, -1),
+                (0, -1),
+            ]
         x, y = coords
-        _d = {(x, y): {(x + dx, y + dy): self.grid.get((x + dx, y + dy), fill_value) for dx, dy in neighbours}}
+        _d = {
+            (x, y): {
+                (x + dx, y + dy): self.grid.get((x + dx, y + dy), fill_value)
+                for dx, dy in neighbours
+            }
+        }
         if enforce_edges:
-            _d = {_k: {__k: __v for __k, __v in _v.items() if not any((__k[0] < 0, __k[1]< 0, not bool(__v)))} for _k, _v in _d.items()}
+            _d = {
+                _k: {
+                    __k: __v
+                    for __k, __v in _v.items()
+                    if not any((__k[0] < 0, __k[1] < 0, not bool(__v)))
+                }
+                for _k, _v in _d.items()
+            }
         return _d
 
     def find_item(self, item: str):
         """Return the coordinates of an item in the grid"""
         for k, v in self.grid.items():
             if v == item:
-                return(k)
+                return k
 
-    def find_all_items(self, item_pattern: str) -> list[tuple[int, int]]:
-        """Find coordinates for all item patterns"""
-        ic = [k for k, v in self.grid.items() if v == item_pattern]
-        return ic
+    def find_all_items(
+        self,
+        *args: Sequence[str],
+        return_value: bool = False,
+    ) -> list[tuple[int, int]]:
+        """Find coordinates for all item patterns
+        :param return_value: Return the value of the item at the coordinate, in dictionary form
+        """
+        if not return_value:
+            occurrence_coords = []
+            for item_pattern in args:
+                occurrence_coords.extend(
+                    [k for k, v in self.grid.items() if v == item_pattern]
+                )
+            return occurrence_coords
+        else:
+            occurrence_coords = {}
+            for item_pattern in args:
+                occurrence_coords.update(
+                    {k: v for k, v in self.grid.items() if v == item_pattern}
+                )
+            return occurrence_coords
 
     def __getitem__(self, obj, fill=None):
         return self.grid.get(obj, fill)
@@ -170,9 +244,14 @@ class Grid:
     def __str__(self):
         return pformat(self.grid)
 
-    def walk(self, start: tuple[int, int], end: tuple[int, int], check_func=None, se_sub: tuple[str, str] = ("a", "z")) -> int:
-        """Walk with djikstras algorithm from start coord to end, returning distance as n steps
-        """
+    def walk(
+        self,
+        start: tuple[int, int],
+        end: tuple[int, int],
+        check_func=None,
+        se_sub: tuple[str, str] = ("a", "z"),
+    ) -> int:
+        """Walk with djikstras algorithm from start coord to end, returning distance as n steps"""
         heap = [(0, start)]
         seen = set()
         sub_start_end = {self[start]: se_sub[0], self[end]: se_sub[1]}
@@ -190,10 +269,9 @@ class Grid:
             for neighbour_xy, n in neighbours[cur_pos].items():
                 if neighbour_xy in seen:
                     continue
-                n = sub_start_end.get(n , n)
+                n = sub_start_end.get(n, n)
                 if check_func(n, cur_val):
                     heappush(heap, (dist + 1, neighbour_xy))
-
 
 
 if __name__ == "__main__":
@@ -222,5 +300,5 @@ if __name__ == "__main__":
                 if int(v) < int(val):
                     seen.add(k)
                     basins[k] += int(v)
-    print(seen)                
-            # left, up, right, down
+    print(seen)
+    # left, up, right, down
