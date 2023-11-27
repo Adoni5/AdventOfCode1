@@ -1,7 +1,7 @@
 ## [Advent of code](https://adventofcode.com/) Repositories for the past few years. 🎄🎄🎄
 
 ### 2023
-![](https://img.shields.io/badge/days%20completed-25-red)
+![](https://img.shields.io/badge/days%20completed-0-red)
 
 
 ### 2022
