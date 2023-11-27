@@ -34,7 +34,7 @@ def sliding_window(iterable, n, skip=False):
 def get_input(
     day: str | int, year: str | int = "2022", split: str = None, strip: bool = True
 ) -> list[str] | str:
-    """Retreive puzzle input for the given year/day.
+    """Retrieve puzzle input for the given year/day.
 
     Parameters
     ----------
@@ -48,7 +48,6 @@ def get_input(
     Stripped puzzle input
     """
 
-    # url  = request.Request(, headers={"session": os.getenv("SESSION")}, method="GET")
     res = requests.get(
         f"https://adventofcode.com/{year}/day/{day}/input",
         headers={
