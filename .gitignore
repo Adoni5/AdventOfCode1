@@ -1,4 +1,5 @@
 .env
 __pycache__
 *.egg*
-*target*
+2022/rust/target*
+2023/rust/target*
