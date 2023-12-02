@@ -10,7 +10,7 @@ from support import get_input
 from math import prod
 
 test_input = get_input("2", year="2023")
-pat = re.compile("(\d+) (blue|red|green)")
+pat = re.compile(r"(\d+) (blue|red|green)")
 fake_games = []
 real_games = []
 for index, line in enumerate(test_input.splitlines(), start=1):
