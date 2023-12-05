@@ -57,20 +57,6 @@ for mappy in lines:
         dest["ranges"].append((source, source + range_ - 1, diff))
 
 
-def merge_intervals(intervals):
-    sorted_intervals = sorted(intervals)
-    collapsed_intervals = []
-    curr_start, curr_end = sorted_intervals[0]
-    for start, end in sorted_intervals[1:]:
-        if start > curr_end:  # We have a new non-overlapping start
-            collapsed_intervals.append((curr_start, curr_end))
-            curr_start, curr_end = start, end
-        else:  # Start is within the current range
-            curr_end = max(curr_end, end)
-    collapsed_intervals.append((curr_start, curr_end))
-    return collapsed_intervals
-
-
 # print(source_to_dest)
 location = float("inf")
 for seed in seed_numbers:
@@ -93,84 +79,40 @@ for seed in seed_numbers:
 # print(location)
 # P2 just start again
 seed_ranges = [
-    (seed_start, seed_start + seed_end - 1)
+    (seed_start, seed_start + seed_end)
     for seed_start, seed_end in batched(seed_numbers, n=2)
 ]
+print(seed_ranges)
+inputs, *blocks = test_input.split("\n\n")
+
+inputs = list(map(int, inputs.split(":")[1].split()))
+seeds = []
+
+for i in range(0, len(inputs), 2):
+    seeds.append((inputs[i], inputs[i] + inputs[i + 1]))
+
 location = float("inf")
-for seed_start, seed_end in seed_ranges:
-    key = "seed"
-    # print("seed range", seed_start, seed_end)
-    ranges = deque([(seed_start, seed_end)])
-    while True:
-        if key not in source_to_dest or not source_to_dest[key]:
-            break
-        new_ranges = deque([])
-        while ranges:
-            if key == "location":
-                # print("breaking for location")
+key = "seed"
+# print("seed", seed)
+for block in blocks:
+    ranges = []
+    for line in block.splitlines()[1:]:
+        ranges.append(list(map(int, line.split())))
+    new = []
+    while seed_ranges:
+        s, e = seed_ranges.pop()
+        for rs, re, d in ranges:
+            os = max(s, re)
+            oe = min(e, re + d)
+            if os < oe:
+                new.append((os - re + rs, oe - re + rs))
+                if os > s:
+                    seed_ranges.append((s, os))
+                if e > oe:
+                    seed_ranges.append((oe, e))
                 break
-            # print("doing a range")
-
-            seed_start, seed_end = ranges.popleft()
-            # print(f"\nexamening seed range {seed_start}, {seed_end}")
-            found_match = False
-            for range_start, range_end, diff in source_to_dest[key]["ranges"]:
-                # print(
-                #     f"against range_start {range_start}, range_end {range_end}, diff {diff}"
-                # )
-                # Seed Range is inside the range range
-                if (
-                    range_end >= seed_start >= range_start
-                    and range_end >= seed_end >= range_start
-                ):
-                    print("Seed Range is inside the range range, breaking")
-                    nseed_start = seed_start + diff
-                    nseed_end = seed_end + diff
-                    new_ranges.append((nseed_start, nseed_end))
-                    found_match = True
-                    break
-
-                # Seed range overlaps range but runs past end
-                elif range_end >= seed_start >= range_start and seed_end > range_end:
-                    print("Seed range overlaps range but come off the end")
-                    nseed_start = seed_start + diff
-                    nseed_end = range_end + diff
-                    new_ranges.append((nseed_start, nseed_end))
-                    # Append the bit after the range
-                    new_ranges.append((range_end + 1, seed_end))
-                    found_match = True
-
-                # Seed range overlaps range but starts before range
-                elif range_end >= seed_end >= range_start and seed_start < range_start:
-                    # print("Seed range overlaps range but comes off the start")
-
-                    nseed_end = seed_end + diff
-                    nseed_start = range_start + diff
-                    new_ranges.append((nseed_start, nseed_end))
-                    # Append the bit after the overlapping ranges
-                    new_ranges.append((seed_start, range_start - 1))
-                    found_match = True
-
-                # No overlap, add the seed range back in
-                # elif not (range_end >= seed_start >= range_start) and not (
-                #     range_end >= seed_end >= range_start
-                # ):
-                #     print("no overlap, adding seed range")
-                #     ranges.append((seed_start, seed_end))
-            # No overlap too any src dest ranges, add the seed range back in
-            if not found_match:
-                print(f"no match found, readding same values for key {key}")
-                new_ranges.append((seed_start, seed_end))
-            # input()
-
-        key = source_to_dest[key]["dest"]
-        ranges = deque(merge_intervals(new_ranges))
-
-        # print(f"ranges after all iterations {sorted(ranges)} fro key {key}")
-    # print(f"key {key}, val {nseed_start} to {nseed_end}")
-    print(sorted(ranges))
-    location = min(location, min(range_start for range_start, _ in ranges))
-    # input()
-    # break
-
-print(f"P2 location {location}")
+        else:
+            new.append((s, e))
+    seed_ranges = new
+    key = source_to_dest[key]["dest"]
+print(min(seed_ranges)[0])
