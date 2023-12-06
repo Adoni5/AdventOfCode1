@@ -34,6 +34,11 @@ pairs = list(
 )
 print(pairs)
 total = 1
+not_total = 0
 for time, dist_to_beat in pairs:
-    total = sum(1 for i in range(1, time) if boaty(i, time) > dist_to_beat)
-print(total)
+    for i in range(1, time):
+        if (time - i) * i > dist_to_beat:
+            break
+        not_total += 1
+print(time - ((not_total * 2) + 1))
+print(not_total)
