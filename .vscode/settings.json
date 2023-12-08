@@ -1,0 +1,7 @@
+{
+    "rust-analyzer.linkedProjects": [
+        "/home/adoni5/Projects/AdventOfCode/2023/rust/Cargo.toml",
+        "/home/adoni5/Projects/cnv_from_bam/Cargo.toml",
+        "./2023/rust/day05/Cargo.toml"
+    ]
+}
