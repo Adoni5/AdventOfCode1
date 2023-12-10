@@ -10,7 +10,6 @@ from support import get_input
 test_input = get_input(4, 2023)
 
 card_wins = defaultdict(int)
-counts = defaultdict(int)
 total = 0
 for index, card in enumerate(test_input.splitlines()):
     card = card.split(":")
@@ -24,12 +23,14 @@ for index, card in enumerate(test_input.splitlines()):
 print(total)
 print(card_wins)
 # p2
+counts = defaultdict(int)
 total = 0
 for card_number, card_value in enumerate(test_input.splitlines(), start=1):
+    # Numbers that match
     copies = counts[card_number]
+    # For as many numbers that match
     for _ in range(copies + 1):
-        # print(numby)
+        # For the card after this one until the number of matches add 1
         for i in range(card_number + 1, card_number + 1 + card_wins[card_number]):
-            # print(i)
             counts[i] += 1
 print(sum(val + 1 for val in counts.values()))
