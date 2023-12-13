@@ -14,19 +14,22 @@ test_input = """#.##..##.
 ..##..###
 #....#..#"""
 
-# test_input = """##..##..###
-# ...#..#....
-# ...#..#....
-# .###..###..
-# .#......#..
-# .#......#..
-# ##..##..###
-# ..#.##.#...
-# .##....##..
-# .###..##...
-# .########.."""
+# test_input = """....###
+# #..#..#
+# #..#..#
+# ....###
+# .####.#
+# #.##...
+# ####.##
+# .#####.
+# .#####.
+# ####.##
+# #.##...
+# .####.#
+# #...###"""
 
 from support import get_input
+from collections import Counter
 
 test_input = get_input(13, 2023)
 
@@ -45,32 +48,44 @@ for pattern in patterns:
     sym_rows, prev_r = 0, -1
     sym_cols, prev_c = 0, -1
     for i in range(1, len(rows)):
-        if not len(set(tuple(rows[i:])) - set(tuple(rows[:i]))) or not len(
-            set(tuple(rows[:i])) - set(tuple(rows[i:]))
-        ):
-            if all(
-                rows[:i][-j - 1] == rows[i:][j]
+        if (
+            sum(
+                x != y
                 for j in range(min(len(rows[:i]) - 1, len(rows[i:]) - 1) + 1)
-            ):
-                print(f"symmetry rows starts {i+1}")
-                sym_rows = (
-                    i * 100 if i * 100 > sym_rows and i - 1 != prev_r else sym_rows
-                )
-                prev_r = i
-                found = True
+                for a, b in zip(rows[:i][-j - 1], rows[i:][j])
+                for x, y in zip(a, b)
+            )
+            == 1
+        ):
+            # if (
+            #     sum(
+            #         x != y for a, b in zip(rows[:i][-j - 1], comp_below) for x, y in zip(a, b)
+            #     )
+            #     == 1
+            # ):
+            print(f"ahh rows {i}")
+            total += 100 * i
+            # if (
+            #     sum(x != y for j in range(d) for x, y in zip(comp_above, comp_below))
+            #     == 1
+            # ):
+            #     print(f"ahhh rows {i}")
+            #
+            #     found = True
     if not found:
         for i in range(1, len(cols)):
-            if not len(set(tuple(cols[i:])) - set(tuple(cols[:i]))) or not len(
-                set(tuple(cols[:i])) - set(tuple(cols[i:]))
-            ):
-                if all(
-                    cols[:i][-j - 1] == cols[i:][j]
+            if (
+                sum(
+                    x != y
                     for j in range(min(len(cols[:i]) - 1, len(cols[i:]) - 1) + 1)
-                ):
-                    print(f"symmetry cols {i+1}\n")
-                    sym_cols = i if i > sym_cols and i - 1 != prev_c else sym_cols
-                    prev_c = i
-                    found = True
+                    for a, b in zip(cols[:i][-j - 1], cols[i:][j])
+                    for x, y in zip(a, b)
+                )
+                == 1
+            ):
+                print(f"ahhh cols {i}")
+                total += i
+                found = True
     print(sym_rows)
     print(sym_cols, "\n")
     # input()
