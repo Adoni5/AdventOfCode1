@@ -17,6 +17,7 @@ total_low = 0
 from collections import deque
 from itertools import zip_longest
 from support import get_input
+from math import lcm
 
 test_input = get_input(20, 2023)
 for line in test_input.splitlines():
@@ -36,10 +37,20 @@ for line in test_input.splitlines():
     if dest in cons:
         cons[dest]["inputs"][module[1:]] = LOW_PULSE
 
+        # P2
+print(cons["cl"])
+(feed,) = [name for name, module in cons.items() if "rx" in module["outputs"]]
+
+cycle_lengths = {}
+seen = {name: 0 for name, module in cons.items() if feed in module["outputs"]}
+print(seen)
 print(broadcast)
 print(cons)
+print(ffs)
 # Broadcat -> (destination, pulse, origin)
-for press in range(1000):
+press = 0
+while True:
+    press += 1
     total_low += 1  # 1 as button press sends one to broadcaster
     broadcast = deque(
         list(
@@ -58,6 +69,20 @@ for press in range(1000):
             total_high += 1
         else:
             total_low += 1
+        if dest == feed and signal == HIGH_PULSE:
+            seen[origin] += 1
+
+            if origin not in cycle_lengths:
+                cycle_lengths[origin] = press
+            else:
+                assert press == seen[origin] * cycle_lengths[origin]
+
+            if all(seen.values()):
+                x = 1
+                for cycle_length in cycle_lengths.values():
+                    x = lcm(x, cycle_length)
+                print(x)
+                exit(0)
         if dest in ffs and signal == LOW_PULSE:
             ffs[dest]["is_on"] = not ffs[dest]["is_on"]
             for next_dest in ffs[dest]["outputs"]:
@@ -76,6 +101,5 @@ for press in range(1000):
                     broadcast.append((next_dest, HIGH_PULSE, dest))
         # print(broadcast)
         # print(cons)
-
-print(total_low, total_high)
-print(total_low * total_high)
+    if press == 1000:
+        print(total_low * total_high)
