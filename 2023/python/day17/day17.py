@@ -11,70 +11,41 @@ test_input = """2413432311323
 1224686865563
 2546548887735
 4322674655533"""
-from collections import deque
-import heapq
+
+from heapq import heappop, heappush
 from support import get_input
 
-# test_input = get_input(17, 2023)
+test_input = get_input(17, 2023)
+grid = {}
+for r, line in enumerate(test_input.splitlines()):
+    for c, char in enumerate(line):
+        grid[(r, c)] = int(char)
 
+max_r = r
+max_c = c
+print(max_r, max_c)
 
-from collections import deque
+seen = set()
+pq = [(0, 0, 0, 0, 0, 0)]
 
+while pq:
+    hl, r, c, dr, dc, n = heappop(pq)
+    if r == max_r and c == max_c:
+        print(hl)
+        break
+    if (r, c, dr, dc, n) in seen:
+        continue
 
-def get_neighbors(position):
-    x, y = position
-    directions = [(0, 1), (1, 0), (0, -1), (-1, 0)]  # Right, Down, Left, Up
-    return [(x + dx, y + dy, (dx, dy)) for dx, dy in directions]
+    seen.add((r, c, dr, dc, n))
+    if n < 3 and (dr, dc) != (0, 0):
+        nr = r + dr
+        nc = c + dc
+        if (nr, nc) in grid:
+            heappush(pq, (hl + grid[(nr, nc)], nr, nc, dr, dc, n + 1))
 
-
-def is_valid_move(current_direction, current_count, new_direction):
-    if current_direction is None:  # First move
-        return True
-    if (
-        current_direction == new_direction and current_count == 4
-    ):  # Change direction after 3 moves
-        return False
-    if current_direction == (-new_direction[0], -new_direction[1]):
-        return False
-    return True
-
-
-def shortest_path_with_constraints(grid):
-    start = (0, 0)
-    end = max(grid.keys())
-    print(end)
-    queue = deque([(start, 0, None, 0, [])])  # Position, weight, direction, count, path
-
-    visited = {}
-    ends = []
-
-    while queue:
-        position, weight, direction, count, path = queue.popleft()
-
-        if (position, direction) in visited and visited[(position, direction)] <= count:
-            continue
-        if position == end:
-            return weight, path
-
-        visited[(position, direction)] = count
-
-        for x, y, new_direction in get_neighbors(position):
-            if (x, y) in grid and is_valid_move(direction, count, new_direction):
-                path.append((x, y))
-                new_count = count + 1 if new_direction == direction else 0
-                new_weight = weight + grid[x, y]
-                queue.append(((x, y), new_weight, new_direction, new_count, path))
-
-    return ends
-
-
-# Parsing the grid from the input
-grid = {
-    (x, y): int(weight)
-    for y, line in enumerate(test_input.splitlines())
-    for x, weight in enumerate(line)
-}
-
-# Calculate the shortest path
-shortest_path_weight = shortest_path_with_constraints(grid)
-print(shortest_path_weight)
+    for ndr, ndc in [(0, 1), (1, 0), (0, -1), (-1, 0)]:
+        if (ndr, ndc) != (dr, dc) and (ndr, ndc) != (-dr, -dc):
+            nr = r + ndr
+            nc = c + ndc
+            if (nr, nc) in grid:
+                heappush(pq, (hl + grid[(nr, nc)], nr, nc, ndr, ndc, 1))
