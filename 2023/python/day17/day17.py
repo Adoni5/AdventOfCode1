@@ -37,15 +37,15 @@ while pq:
         continue
 
     seen.add((r, c, dr, dc, n))
-    if n < 3 and (dr, dc) != (0, 0):
+    if n < 10 and (dr, dc) != (0, 0):
         nr = r + dr
         nc = c + dc
         if (nr, nc) in grid:
             heappush(pq, (hl + grid[(nr, nc)], nr, nc, dr, dc, n + 1))
-
-    for ndr, ndc in [(0, 1), (1, 0), (0, -1), (-1, 0)]:
-        if (ndr, ndc) != (dr, dc) and (ndr, ndc) != (-dr, -dc):
-            nr = r + ndr
-            nc = c + ndc
-            if (nr, nc) in grid:
-                heappush(pq, (hl + grid[(nr, nc)], nr, nc, ndr, ndc, 1))
+    if n >= 4 or (dr, dc) == (0, 0):
+        for ndr, ndc in [(0, 1), (1, 0), (0, -1), (-1, 0)]:
+            if (ndr, ndc) != (dr, dc) and (ndr, ndc) != (-dr, -dc):
+                nr = r + ndr
+                nc = c + ndc
+                if (nr, nc) in grid:
+                    heappush(pq, (hl + grid[(nr, nc)], nr, nc, ndr, ndc, 1))
