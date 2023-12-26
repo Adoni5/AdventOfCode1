@@ -8,7 +8,12 @@ test_input = """1,0,1~1,2,1
 import re
 from string import ascii_uppercase
 from operator import sub
-from typing import Any
+import sys
+
+
+from support import get_input
+
+test_input = get_input(22, 2023)
 
 
 class Brick:
@@ -60,19 +65,47 @@ class Brick:
             return self.y
         if __name == 2:
             return self.z
-        else:
-            raise RuntimeError("ahhh")
+        return self.x
 
-    def resting_on(self, other_brick) -> bool:
-        """Is this brick resting on another brick in some dimension"""
+    def blockupied(self, dz=0):
+        orientation = self.orientation()
+        range_occ = self.rev_orientation(self.orientation())
+        range_occ = range_occ[0], range_occ[1] + 1
+        if orientation == 0:
+            return {(x, self.y0, self.z0 - dz) for x in range(*range_occ)}
+        if orientation == 1:
+            return {(self.x0, y, self.z0 - dz) for y in range(*range_occ)}
+        if orientation == 2:
+            return {
+                (self.x0, self.y0, z - dz)
+                for z in range(range_occ[0] - dz, range_occ[1] - dz)
+            }
+        return {(x, self.y0, self.z0 - dz) for x in range(*range_occ)}
+
+    def resting_on(self, other_brick, and_floor=True) -> bool:
+        """Is this brick resting on another brick in some dimension, or the floor"""
+        print(self.name, self.coords)
+        print(f"other {other_brick.name}, {other_brick.coords}")
         nbrick_z0, nbrick_z1 = self.z0 - 1, self.z1 - 1
-        if other_brick.z0 == nbrick_z0 or other_brick.z1 == nbrick_z1:
-            for x in range(*other_brick.rev_orientation(other_brick.orientation())):
-                print(x)
+        blocks_occupied = self.blockupied(dz=1)
+        print(nbrick_z0 == 0, and_floor)
+        # print(other_brick.blockupied().intersection(blocks_occupied))
+        print(f"other brick {other_brick.name} occupies {other_brick.blockupied()}")
+        print(other_brick.blockupied().intersection(blocks_occupied))
+        print(f"{brick.name} occupies {blocks_occupied} if moved down")
+        if self.name == "brick 2" and (nbrick_z0 == 0 and and_floor):
+            sys.exit()
+        return (
+            (other_brick.z0 == nbrick_z0 or other_brick.z1 == nbrick_z1)
+            and other_brick.blockupied().intersection(blocks_occupied)
+        ) or (nbrick_z0 == 0 and and_floor)
 
     def move_down(self):
         self.z0 -= 1
         self.z1 -= 1
+
+    def temp_move_down(self):
+        return self.z0 - 1, self.z1 - 1
 
     def __repr__(self):
         return f"Brick(name={self.name}, x={self.x}, y={self.y}, z={self.z})"
@@ -87,19 +120,55 @@ final_pos = {}
 
 n = iter(ascii_uppercase)
 pat = re.compile(r"(\d)+")
-for line in test_input.splitlines():
-    brick = Brick(*list(map(int, pat.findall(line))), next(n))
+for i, line in enumerate(test_input.splitlines()):
+    brick = Brick(*list(map(int, pat.findall(line))), f"brick {i}")
 
     print(brick.name, brick.size(), brick.orientation())
     if brick.z0 == 1 or brick.z1 == 1:
         final_pos[brick.coords] = brick
     bricks.append(brick)
 
-print(final_pos)
+# print(final_pos)
+resting = set(final_pos.keys())
+a = list(final_pos.values())
 
 for brick in bricks:
-    while brick.coords not in final_pos:
-        print(f"moving down brick {brick.name}")
-        brick.move_down()
-        for resting_brick in final_pos.values():
-            brick.resting_on(resting_brick)
+    while brick.coords not in resting:
+        print(f"moving down brick {brick}")
+        for resting_brick in a:
+            if brick.resting_on(resting_brick):
+                print(f"{brick.name} is resting at {brick.coords}")
+                final_pos[brick.coords] = brick
+                a.append(brick)
+                resting.add(brick.coords)
+                print(resting)
+                break
+        else:
+            print("moving brick donw")
+            brick.move_down()
+            break
+        print()
+
+
+sys.exit(0)
+total = set()
+all_leant_on = set()
+for v in final_pos.values():
+    count = 0
+    v2s = []
+    for v2 in final_pos.values():
+        if v.name == v2.name:
+            continue
+        if v.resting_on(v2, and_floor=False):
+            print(f"{v.name} on {v2.name}")
+            # total += 1
+            v2s.append(v2.name)
+            all_leant_on.add(v2.name)
+        if len(v2s) > 1:
+            total.update(set(v2s))
+for v in final_pos.values():
+    if v.name not in all_leant_on:
+        print(v.name)
+        total.add(v.name)
+print(len(total))
+# print(final_pos)
