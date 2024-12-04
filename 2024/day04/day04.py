@@ -11,17 +11,17 @@ MXMXAXMASX"""
 
 with open("input.txt") as fh:
     test_input = fh.read()
+
+
 g = {}
 for r, l in enumerate(test_input.splitlines()):
     for c, x in enumerate(l.strip()):
         g[(c, r)] = x
 
 s_word = "XMAS"
-print(g)
 xmas_count = 0
 d = ((1, 0), (1, 1), (0, 1), (-1, 1), (-1, 0), (-1, -1), (0, -1), (1, -1))
 for (c, r), ch in g.items():
-    visited = set()
     search = True
     word = ""
     # print(ch, c, r)
@@ -45,5 +45,21 @@ for (c, r), ch in g.items():
                 if word == s_word:
                     xmas_count += 1
                     break
+
+print(xmas_count)
+
+
+xmas_count = 0
+d = ((1, 1), (-1, -1), (-1, 1), (1, -1))
+a = set(("SAM", "MAS"))
+for (c, r), ch in g.items():
+    # print(ch, c, r)
+    if ch != "A":
+        continue
+    w1, w2 = None, None
+    w1 = f"{g.get((c + 1, r +1))}A{g.get((c - 1, r -1))}"
+    w2 = f"{g.get((c - 1, r + 1))}A{g.get((c + 1, r - 1))}"
+    if w1 in a and w2 in a:
+        xmas_count += 1
 
 print(xmas_count)
