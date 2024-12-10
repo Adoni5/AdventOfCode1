@@ -29,6 +29,7 @@ while starts:
     visited = set()
     while q:
         c, r = q.popleft()
+        visited = set()
         h = g[(c, r)]
         for dc, dr in d:
             nc, nr = c + dc, r + dr
