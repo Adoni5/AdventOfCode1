@@ -25,27 +25,65 @@ for line in test_input.splitlines():
     x, y, vx, vy = tuple(map(int, pat.findall(line)))
     robots.append((x, y, vx, vy))
 
-print(robots)
-print(len(robots))
-print()
+
 mx, my = 101, 103
+
+v = set()
 hx, hy = int((mx - 1) / 2), int((my - 1) / 2)
 print(f"hx is {hx}, hy is {hy}")
-r = Counter()
-d = Counter()
-for k1, k2, vx, vy in robots:
-    x, y = k1, k2
-    # for i in range():
-    _k1 = x + vx * 100
-    _k2 = y + vy * 100
-    x, y = _k1 % mx, _k2 % my
-    # midpoint
-    if x == hx or y == hy:
-        continue
-    r[(x, y)] += 1
-    quad = (int(x > hx), int(y > hy))
-    # print(x, y)
-    d[quad] += 1
-print(r)
-print(d)
-print(reduce(mul, d.values()))
+for i in range(100000):
+    i = i + 1
+    r = Counter()
+    d = Counter()
+
+    for k1, k2, vx, vy in robots:
+        x, y = k1, k2
+        # for i in range():
+        _k1 = x + vx * i
+        _k2 = y + vy * i
+        x, y = _k1 % mx, _k2 % my
+        # midpoint
+        r[(x, y)] += 1
+        if x == hx or y == hy:
+            continue
+        quad = (int(x > hx), int(y > hy))
+        # print(x, y)
+        d[quad] += 1
+    if tuple(r.keys()) in v:
+
+        break
+    v.add(tuple(r.keys()))
+    dx, dy = 1, 0
+    stop = False
+    for x, y in r.keys():
+        adj = 0
+        _x, _y = x, y
+        while True:
+            if (_x + dx, _y + dy) in r:
+                adj += 1
+                _x, _y = _x + dx, _y + dy
+            else:
+                break
+
+            if adj == 15:
+                lines = []
+                stop = True
+                for _y in range(my):
+                    line = []
+                    for c in range(mx):
+                        if (c, _y) in r:
+                            line.append("*")
+                        else:
+                            line.append(".")
+                    lines.append("".join(line))
+                    line = []
+                print(i)
+                print("\n".join(lines))
+
+                break
+    if stop:
+        print(i)
+        break
+    print(i)
+    if i == 100:
+        print(reduce(mul, d.values()))
