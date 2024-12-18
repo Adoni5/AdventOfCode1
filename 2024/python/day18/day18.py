@@ -24,7 +24,6 @@ test_input ="""5,4
 1,6
 2,0"""
 from heapq import heappop, heappush
-from collections import deque
 
 with open("input.txt") as fh:
     test_input = fh.read()
