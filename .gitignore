@@ -3,3 +3,4 @@ __pycache__
 *.egg*
 2022/rust/target*
 2023/rust/target*
+input.txt
