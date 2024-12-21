@@ -5,7 +5,6 @@ test_input = """029A
 379A"""
 from pprint import pprint
 from functools import cache
-from collections import deque
 import heapq
 
 d_buttons = " ^A,<v>"
@@ -27,13 +26,12 @@ pprint(num_pad)
 ds = {(0, -1): "^", (1, 0): ">", (-1, 0): "<", (0, 1): "v"}
 PRESS = "A"
 START = (2, 3)
+# with open("input.txt") as fh:
+#     test_input = fh.read()
 
 
 @cache
-def move_to_num(target, start, npad=True, depth=0):
-    if d > 3:
-        return []
-    print(f"target is {target}")
+def move_to_num(target, start, npad=True):
     q = [(0, *start, list(), (0, 0), set())]
     # visited = set()
     routes = []
@@ -51,7 +49,7 @@ def move_to_num(target, start, npad=True, depth=0):
                     if s <= low_s:
                         _start = (c, r)
                         routes.append(f"{"".join(steps)}A")
-                        print("".join(steps))
+                        # print("".join(steps))
                     continue
         else:
             if x := d_buttons.get((c, r), None):
@@ -60,7 +58,7 @@ def move_to_num(target, start, npad=True, depth=0):
                     if s <= low_s:
                         _start = (c, r)
                         routes.append(f"{"".join(steps)}A")
-                        print("".join(steps))
+                        # print("".join(steps))
                     continue
                     # return "".join(steps), (c, r)
         for d in ds:
@@ -75,18 +73,44 @@ def move_to_num(target, start, npad=True, depth=0):
                 if x := d_buttons.get((nc, nr), None):
                     a.append(ds[(dc, dr)])
                     heapq.heappush(q, (s + 1, nc, nr, a, d, set(visited)))
-    if _routes:
     return routes, _start
 
 
+@cache
+def recurse_move(targets, start, npad=True):
+    if not targets:
+        return [[]]  # Base case: return an empty path to concatenate later
+    # print(f"targets are {targets}, npad is {npad}, depth is {depth}")
+    target = targets[0]
+    # Get all shortest paths and the next starting point(s)
+    routes, _ = move_to_num(target, start, npad)
+
+    all_paths = []
+    for route in routes:
+        # Extract the endpoint of the current route to use as the start for the next recursion
+        # Define how to calculate this
+        # Recursively find paths for the remaining targets
+        sub_paths = recurse_move(targets[1:], _, npad)
+
+        # Combine the current route with each sub-path
+        for sub_path in sub_paths:
+            all_paths.append([route] + sub_path)
+
+    return sorted(all_paths)[:1000]
+
+
 # We need the optimal routes on the numpad to each place from A as we go back to A each time ( I think)
+p1 = 0
 for line in test_input.splitlines():
-    print(line)
 
-    for t in line:
-        routes, START = move_to_num(t, START)
+    paths = recurse_move(line, START)
 
-        print(routes)
-
-    print(line)
-    break
+    for _ in range(2):
+        print(_)
+        _help = []
+        for path in paths:
+            path = "".join(path)
+            _help.extend(recurse_move(path, (2, 0), False))
+        paths = _help
+    p1 += int(line[:3]) * min(len("".join(path)) for path in paths)
+print(p1)
