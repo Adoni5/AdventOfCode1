@@ -75,6 +75,7 @@ def move_to_num(target, start, npad=True, depth=0):
                 if x := d_buttons.get((nc, nr), None):
                     a.append(ds[(dc, dr)])
                     heapq.heappush(q, (s + 1, nc, nr, a, d, set(visited)))
+    if _routes:
     return routes, _start
 
 
