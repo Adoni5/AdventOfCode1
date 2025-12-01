@@ -52,17 +52,18 @@ for (c, r), content in g.items():
 
     print(plot)
     v = set()
-    p2_q = deque([plot])
-    while plot:
-        c, r = plot.popleft()
-        pu = pd = pl = pr = 0
-        for dc, dr in d:
-            _c, _r = c, r
-            while True:
-                nc, nr = _c + dc, _r + dr
-                nn = plot.get((nc, nr))
-                if nn 
+    width = height = 0
 
+    w0 = min(x[0] for x in plot.keys())
+    width = max(x[0] for x in plot.keys()) - w0
+    h0 = min(x[1] for x in plot.keys())
+    height = max(x[1] for x in plot.keys()) - h0
+    # go alow top points
+    top_points = []
+    for i in range(width + 1):
+        top_points.append(min(k for k in plot.keys() if k[0] == w0 + i))
+    print(top_points)
+    left_points = []
     # print(content, region, perimeter, c, r)
     s += region * perimeter
     ans[content] = (region, perimeter)
